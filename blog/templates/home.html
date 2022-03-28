@@ -1,0 +1,418 @@
+{% extends 'app.html' %}
+
+{% block content %}
+    <div class="row">
+        <!-- Search box -->
+        <div class="col-12 mb-3">
+            <div class="input-group">
+                <input id="txt-search" type="text" class="form-control" placeholder="Search..">
+                <div class="input-group-append">
+                    <span onclick="search()" class="input-group-text">
+                        <i class="fa fa-fw fa-search"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <!-- Post List with CRUD Functionality -->
+            <div id="block-main" class="block block-rounded">
+                <div class="block-header border-bottom">
+                    <h4 id="title" class="block-title text-primary">{{count_posts}} Posts</h4>
+                    <div class="block-options">
+                        <button class="btn btn-primary" data-toggle="modal" data-target="#createPostModal">Create Post</button>
+                    </div>
+                </div>
+                <div class="block-content">                
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-hover table-vcenter">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th class="text-center" style="width:20%;">Title</th>
+                                    <th class="text-center" style="width:50%;">Body</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="post_list">
+                                {% for post in posts %}
+                                    <tr id="{{ post.id }}">
+                                        <td>{{ post.id }}</td>
+                                        <td>{{ post.title }}</td>
+                                        <td>{{post.body}}</td>
+                                        <td><a href="javascript:void(0)" onclick="updatePost({{post.id}})" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Edit"><i class="si si-pencil"></i></a> <a href="javascript:void(0)" onclick="deletePost({{ post.id}})" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Delete"><i class="si si-close" style="color: rgb(233, 49, 104);"></i></a></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div> 
+                                        
+                </div>
+            </div>
+        </div>
+    </div>   
+
+    <!-- Create Post Modal -->
+  <div class="modal" id="createPostModal">
+    <div class="modal-dialog modal-dialog-popout modal-dialog-lg">
+      <div class="modal-content">
+        <div class="block block-rounded">
+            <div class="block-header border-bottom">
+                <h5 class="block-title">New Post</h5>
+                <div class="block-options">
+                    <button type="button" class="btn-block-option" data-dismiss="modal" aria-label="Close">
+                        <i class="si si-close"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="block-content">
+                <form id="createPostForm" action="" method="POST">
+                    <div class="form-group">
+                        <label for="title" class="sr-only">Title</label>
+                        <input type="text" name="title" id="title" class="form-control" placeholder="Title">
+                        <span class="text-danger" id="titleError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="body" class="sr-only">Body</label>
+                        <textarea  rows="5" type="text" name="body" id="body" class="form-control" placeholder="Write Post"></textarea>
+                        <span class="text-danger" id="messageError"></span>
+                    </div>
+                    <ul class="text-danger" id="createPostNonFieldError">
+                    </ul>
+                    <input type="submit" value="Create Post" class="btn btn-primary btn-block">
+                </form>              
+            </div>
+        </div> 
+      </div>
+    </div>
+  </div>
+
+
+    <!-- Update Post Modal -->
+    <div class="modal" id="updatePostModal">
+        <div class="modal-dialog modal-dialog-popout modal-dialog-lg">
+            <div class="modal-content">
+            <div class="block block-rounded">
+                <div class="block-header border-bottom">
+                    <h5 class="block-title">Update Post</h5>
+                    <div class="block-options">
+                        <button type="button" class="btn-block-option" data-dismiss="modal" aria-label="Close">
+                            <i class="si si-close"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="block-content">
+                    <form id="updatePostForm" action="" method="POST">                    
+                        <input type="hidden" name="post_id" id="post_id" value="">                        
+                        <div class="form-group">
+                            <label for="title" class="sr-only">Title</label>
+                            <input type="text" name="edit_title" id="edit_title" class="form-control" placeholder="Title">
+                            <span class="text-danger" id="titleError"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_body" class="sr-only">Body</label>
+                            <textarea  rows="5" type="text" name="edit_body" id="edit_body" class="form-control" placeholder="Write Post"></textarea>
+                            <span class="text-danger" id="bodyError"></span>
+                        </div>
+                        <ul class="text-danger" id="createPostNonFieldError">
+                        </ul>
+                        <input type="submit" value="Update Post" class="btn btn-primary btn-block">
+                    </form>              
+                </div>
+            </div> 
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deletePostModal">
+        <div class="modal-dialog modal-dialog-popout">
+            <div class="modal-content">
+                <div class="block block-rounded">
+                    <div class="block-header">
+                        <h5 class="block-title">Confirm Delete?</h5>
+                        <div class="block-options">
+                            <button type="button" class="btn-block-option" data-dismiss="modal" aria-label="Close">
+                                <i class="si si-close"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>  
+                <div class="modal-body text-weight-700">
+                    <h5 class="block-title">Do you want to delete Post with Id: <span class="font-weight-bold" id="postId"></span> ?</h5>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary btn-sm col-sm-2" data-dismiss="modal">Close</button>
+                    <button id="delete" class="btn btn-danger btn-sm col-sm-2">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock content %}
+
+{% block scripts %}
+    <script>
+        function updatePost(id){
+            let _url=`/show-post/${id}/`
+                $.ajax({
+                    url:_url,
+                    type:"GET",
+                    headers:{                        
+                    },           
+                }).done((response)=>{  
+                    post=response.post
+                    $('#edit_title').val(post.title)
+                    $('#edit_body').text(post.body)
+                    $('#post_id').val(post.id)
+                    $('#updatePostModal').modal('show')
+                }).fail((jqXHR, exception)=>{                   
+                    msg=''
+                    One.helpers('notify', {type: 'error', icon: 'fa fa-times mr-1', message: `Error occured: ${jqXHR.jsonResponse}`});
+                })
+        }
+        function search(){
+            var text=$("#txt-search").val()
+            if (text === "") return
+            let _url=`/search/`
+            One.block('state_toggle', '#block-main');
+            $.ajax({
+                url:_url,
+                type:"POST",
+                headers:{
+                    'X-CSRFToken':csrftoken,
+                },
+                data:{
+                    'text':text
+                },                     
+            }).done((response)=>{  
+                One.block('state_toggle', '#block-main');
+                $("#post_list").html('')
+                count=response.posts.length
+                showData(count, response.posts)   
+            }).fail((jqXHR, exception)=>{
+                One.block('state_toggle', '#block-main');
+                One.helpers('notify', {type: 'error', icon: 'fa fa-times mr-1', message: `Error occured: ${jqXHR.jsonResponse}`});
+                console.log(jqXHR)
+            })
+        }
+        //render posts data to post_list table/from search query
+        function showData(count, posts){
+            if(count == 0){
+                $("#title").text("no result found")
+                return
+            }
+            else if(count == 1){
+                $("#title").text("One result found")
+            }
+            else{
+                $("#title").text(`${count} results's found`)                     
+            }
+            for(var i in posts) {
+                    obj=posts[i]
+                    var text=`
+                        <tr id="${obj.id}">
+                            <td>${obj.id}</td>
+                            <td>${obj.title}</td>
+                            <td>${obj.body}</td>
+                            <td>
+                                <a href="javascript:void(0)" onclick="updatePost(${obj.id})"><i class="si si-pencil"></i></a>
+                                <a href="javascript:void(0)" onclick="deletePost(${obj.id})"><i class="si si-close" style="color: rgb(233, 49, 104);"></i></a>
+                            </td>
+                        </tr>
+                    `
+                    $("#post_list").append(text)
+                }
+        }
+        function clearText(){
+            $("#titleError").text('')
+            $("#postError").text('')
+            $("#createPostNonFieldError").html('')
+        }
+        function deletePost(id){
+            $("#delete").data("id", id);
+            $("#postId").text(id);
+            $("#deletePostModal").modal("show");
+        } 
+        $(document).ready(()=>{
+            //display all blogs when text search field is empty and
+            //call search method when user press return key
+            $(document).on("keyup", "#txt-search", (e)=>{  
+                if(e.which == 13){
+                    search()               
+                }
+                if($("#txt-search").val() === ''){
+                    One.block('state_toggle', '#block-main')                    
+                    $.ajax({
+                        url:'/all-posts',
+                        type:'GET',
+                    }).done((response)=>{
+                        One.block('state_toggle', '#block-main');
+                        $("#post_list").html('')
+                        count=response.posts.length
+                        showData(count, response.posts)
+                    })
+                }
+            })
+            $("#createPostForm").on('submit', function(e){
+                e.preventDefault()
+                var formData=new FormData(this)
+                let _url=`/create-post/`
+                $.ajax({
+                    url:_url,
+                    type:"POST",
+                    contentType: false,
+                    processData:false,                   
+                    headers:{
+                        'X-CSRFToken':csrftoken,                     
+                    },
+                    data:formData,            
+                }).done((response)=>{  
+                    obj=response.post
+                    
+                    item=`<tr id=${obj.id}>
+                            <td>${obj.id}</td>
+                            <td>${obj.title}</td>
+                            <td>${obj.body}</td>
+                            <td>
+                                <a href="javascript:void(0)" onclick="updatePost(${obj.id})"><i class="si si-pencil"></i></a>
+                                <a href="javascript:void(0)" onclick="deletePost(${obj.id})"><i class="si si-close" style="color: rgb(233, 49, 104);"></i></a>
+                            </td>
+                        </tr>
+                    `
+                    $("#post_list").prepend(item)
+                    clearText()
+                    // $('#title').val('')
+                    // $('#body').text=''                    
+                    $(this).trigger('reset')                   
+                    One.helpers('notify', {type: 'success', icon: 'fa fa-check mr-1', message: 'Post creation succesful!'})
+                    $("#createPostModal").modal('hide') 
+                }).fail((jqXHR, exception)=>{                   
+                    msg=''
+                    if (jqXHR.status === 0) {
+                        msg = 'Not connect.\n Verify Network.';
+                    } else if (jqXHR.status ==400){
+                        msg = 'Validation Error. [400]';
+                        clearText()
+                        $.each(jqXHR.responseJSON, function(key, value) {
+                            var errorId='#' + key + "Error"; 
+                            $('#' + key).addClass("is-invalid");
+                            $(errorId).removeClass("d-none");
+                            $(errorId).text(value);
+                        });
+                        $.each(jqXHR.responseJSON.non_field_errors, function(key, value) {
+                        $('#updateProfileNonFieldError').append(`<li>${value}</li>`)                        
+                        });
+                    }else if (jqXHR.status == 404) {
+                        msg = 'Requested page not found. [404]';
+                    } else if (jqXHR.status == 500) {
+                        msg = 'Internal Server Error [500].';
+                    } else if (exception === 'parsererror') {
+                        msg = 'Requested JSON parse failed.';
+                    } else if (exception === 'timeout') {
+                        msg = 'Time out error.';
+                    } else if (exception === 'abort') {
+                        msg = 'Ajax request aborted.';
+                    } else {
+                        msg = 'Uncaught Error.\n' + jqXHR.responseText;
+                    }
+                    console.log(msg)
+                    One.helpers('notify', {type: 'error', icon: 'fa fa-times mr-1', message: `Error occured: ${jqXHR.jsonResponse}`});
+
+                })
+            })
+
+            $("#updatePostForm").on('submit', function(e){
+                e.preventDefault()
+                id=$("#post_id").val()
+                console.log(id)
+                let _url=`/update-post/${id}/`
+                $.ajax({
+                    url:_url,
+                    type:"POST",
+                    headers:{  
+                        'X-CSRFToken':csrftoken,                     
+                    },
+                    data:{
+                        'edit_title':$("#edit_title").val() ,
+                        'edit_body': $("#edit_body").text() 
+                    },            
+                }).done((response)=>{  
+                    console.log(response)
+                    obj=response.post
+                    item=`
+                        <td>${obj.id}</td>
+                        <td>${obj.title}</td>
+                        <td>${obj.body}</td>
+                        <td>
+                            <a href="javascript:void(0)" onclick="updatePost(${obj.id})"><i class="si si-pencil"></i></a>
+                            <a href="javascript:void(0)" onclick="deletePost(${obj.id})"><i class="si si-close" style="color: rgb(233, 49, 104);"></i></a>
+                        </td>
+                    `
+                    $(`#${obj.id}`).html(item)
+                    clearText()
+                    $("#edit_title").val('')
+                    $("#edit_message").val('')                    
+                    One.helpers('notify', {type: 'success', icon: 'fa fa-check mr-1', message: 'Post update succesful!'})
+                    $("#updatePostModal").modal('hide') 
+                }).fail((jqXHR, exception)=>{                   
+                    msg=''
+                    if (jqXHR.status === 0) {
+                        msg = 'Not connect.\n Verify Network.';
+                    } else if (jqXHR.status ==400){
+                        msg = 'Validation Error. [400]';
+                        clearText()
+                        $.each(jqXHR.responseJSON, function(key, value) {
+                            var errorId='#' + key + "Error"; 
+                            $('#' + key).addClass("is-invalid");
+                            $(errorId).removeClass("d-none");
+                            $(errorId).text(value);
+                        });
+                        $.each(jqXHR.responseJSON.non_field_errors, function(key, value) {
+                        $('#updateProfileNonFieldError').append(`<li>${value}</li>`)                        
+                        });
+                    }else if (jqXHR.status == 404) {
+                        msg = 'Requested page not found. [404]';
+                    } else if (jqXHR.status == 500) {
+                        msg = 'Internal Server Error [500].';
+                    } else if (exception === 'parsererror') {
+                        msg = 'Requested JSON parse failed.';
+                    } else if (exception === 'timeout') {
+                        msg = 'Time out error.';
+                    } else if (exception === 'abort') {
+                        msg = 'Ajax request aborted.';
+                    } else {
+                        msg = 'Uncaught Error.\n' + jqXHR.responseText;
+                    }
+                    console.log(msg)
+                    One.helpers('notify', {type: 'error', icon: 'fa fa-times mr-1', message: `Error occured: ${jqXHR.jsonResponse}`});
+
+                })
+            })
+            
+               //Delete Post
+               $("#delete").on("click", function(){
+                let id=$(this).data("id");
+                let _url=`/delete-post/${id}/`;
+                $.ajax({
+                    url:_url,
+                    type:"POST",
+                    headers:{
+                        'X-CSRFToken':csrftoken,                       
+                    },
+                }).done((response)=>{
+                    $(`#${response.id}`).remove()
+                    $('#deletePostModal').modal('hide')
+                    One.helpers('notify', {type: 'success', icon: 'fa fa-check mr-1', message: 'Post delete succesful!'})
+
+                }).fail((jqXHR, exception)=>{                   
+                    msg=''
+                    One.helpers('notify', {type: 'error', icon: 'fa fa-times mr-1', message: `Error occured: ${jqXHR.jsonResponse}`});
+                })
+            })
+        })
+    </script>
+{% endblock scripts %}
+    
+    

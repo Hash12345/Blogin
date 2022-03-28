@@ -1,0 +1,5 @@
+venv/
+staticfiles/
+static/_es6
+static/_scss
+static/media
